@@ -2,19 +2,24 @@ package com.example.puzzlegame;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
     private GridLayout gridLayout;
     private List<TextView> tiles;
     private final int[] solution = {1, 2, 3, 4, 5, 6, 7, 8, 0};
+    DatabaseHelper databaseHelper;
+    private TextView scoreTextView;
+    private Button playAgainButton;
+    private int score;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,7 +27,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         gridLayout = findViewById(R.id.grid_layout);
+        scoreTextView = findViewById(R.id.score_text_view);
+        playAgainButton = findViewById(R.id.play_again_button);
         tiles = new ArrayList<>();
+        databaseHelper = new DatabaseHelper(this);
+        score = databaseHelper.getHighScore();
+        updateScoreDisplay();
 
         for (int i = 0; i < gridLayout.getChildCount(); i++) {
             TextView tile = (TextView) gridLayout.getChildAt(i);
@@ -34,6 +44,13 @@ public class MainActivity extends AppCompatActivity {
             });
             tiles.add(tile);
         }
+
+        playAgainButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startNewGame();
+            }
+        });
 
         startNewGame();
     }
@@ -54,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 tile.setText(String.valueOf(number));
             }
+            tile.setClickable(true);
         }
     }
 
@@ -66,6 +84,9 @@ public class MainActivity extends AppCompatActivity {
             tile.setText("");
 
             if (checkWin()) {
+                score++;
+                databaseHelper.addScore(score);
+                updateScoreDisplay();
                 Toast.makeText(this, "You Win!", Toast.LENGTH_SHORT).show();
                 disableTiles();
             }
@@ -106,5 +127,9 @@ public class MainActivity extends AppCompatActivity {
         for (TextView tile : tiles) {
             tile.setClickable(false);
         }
+    }
+
+    private void updateScoreDisplay() {
+        scoreTextView.setText("Score: " + score);
     }
 }
